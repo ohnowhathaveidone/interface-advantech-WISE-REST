@@ -12,24 +12,24 @@ i tested this with a WISE-4050/LAN module with four digital inputs and four digi
 
 ## logging in  
 when requesting the login page, the returned index.html contains an eight digit hexadecimal seed (seeddata in code). from this, a string can be constructed in the form of  
-seed:username:password  
+`seed:username:password`  
 this string is then hashed with md5 into authdata. then, this information is packaged into a payload in the form  
-seeddata=seed&authdata=authdata  
-send this with a POST request to the login endpoint. the only header that matters seems to be Content-Length, which is the length of the above string. if you receive a 200 response, it will containg a cookie with an adamsessionid variable. i _believe_ that this variable holds the first 11 digits of the hash for the seed:username:password string, so probably it can also be constructed.  
+`seeddata=seed&authdata=authdata`  
+send this with a POST request to the login endpoint. the only header that matters seems to be `Content-Length`, which is the length of the above string. if you receive a 200 response, it will containg a cookie with an adamsessionid variable. i _believe_ that this variable holds the first 11 digits of the hash for the `seed:username:password` string, so probably it can also be constructed.  
 the way this process works lets me believe that the username and password are stored in plain text on the module. there are more than enough standardized ways to do authentication via REST. it's beyond me why advantech chose their own convoluted, undocumented and probably unsafe way to do this.  
 
 ## query state of digital IO  
 send a GET request to  
-/do_value/slot_0 for outputs or  
-/di_value/slot_0 for inputs  
+`/do_value/slot_0` for outputs or  
+`/di_value/slot_0` for inputs  
 port :80 is not required here.  you get back a string that can be converted into json.  
 
 ## set digital output  
 this was the biggest headache.  
-sending PUT to /do_value/slot_0/ch_X (X = 0..3) did not work at all. the server required a Content-Length, however setting it to 0 crashed the server. other numbers didn't work either.  
+sending PUT to `/do_value/slot_0/ch_X` (X = 0..3) did not work at all. the server required a Content-Length, however setting it to 0 crashed the server. other numbers didn't work either.  
 by investigating network traffic, it became obvious that the web interface actually sends a json to /do_value/slot_0. BUT: it sends it as a string à la  
-"{\"DOVal\":[{\"Ch\":0,\"Val\":1}]}"  
-Content-Length is the length of the string.  
+`"{\"DOVal\":[{\"Ch\":0,\"Val\":1}]}"`  
+`Content-Length` is the length of the string.  
 altogether, this concept feels strange.  
 
 ## other info / final thoughts  

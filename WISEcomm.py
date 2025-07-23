@@ -22,23 +22,23 @@ class WISEIOBox():
         self.p = p;
     
     def login(self):
-        res = requests.get(self.URL + self.loginEndpoint);
+        res = requests.get(self.IOURL + self.loginEndpoint);
         print('module response: ');
         print(res.reason);
         pattern = r'[0-9A-F]{8}'; 
-        self.seedData = re.findall(pattern, str(re.content))[0];
+        self.seedData = re.findall(pattern, str(res.content))[0];
         loginString = self.seedData + ':' + self.u + ':' + self.p;
-        authdata = hashlib.md5(loginString);
+        authdata = hashlib.md5(loginString.encode());
         self.loginString = 'seeddata=' + self.seedData + '&authdata=' + str(authdata.hexdigest());
         loginHeader = {'Content-Length': str(len(loginString))};
         print('attempting login with ' + loginString);
-        self.loginData = requests.post( self.URL + self.loginEndpoint, 
+        self.loginData = requests.post( self.IOURL + self.loginEndpoint, 
                                         headers = loginHeader, 
                                         data = self.loginString,
                                         );
         
     def getDI(self, di_num):
-        res = requests.get(self.URL + self.diEndpoint, 
+        res = requests.get(self.IOURL + self.diEndpoint, 
                        cookies = self.loginData.cookies, 
                        data = self.loginString,
                        headers = {});
@@ -46,7 +46,7 @@ class WISEIOBox():
         return diStruct['DIVal'][di_num]['Val'];
 
     def getDO(self, do_num):
-        res = requests.get(self.URL + self.doEndpoint, 
+        res = requests.get(self.IOURL + self.doEndpoint, 
                        cookies = self.loginData.cookies, 
                        data = self.loginString,
                        headers = {});
@@ -54,12 +54,12 @@ class WISEIOBox():
         return diStruct['DOVal'][do_num]['Val'];
 
     def setDO(self, do_num, state):
-        print(self.URL[:-3] + self.doEndpoint);
+        print(self.IOURL[:-3] + self.doEndpoint);
         payload = '{\"DOVal\":[{\"Ch\":' + str(do_num) + ',\"Val\":' + str(state) + '}]}';
         print('sending payload:');
         print(payload);
         h = {'Content-Length': str(len(payload))};
-        res = requests.patch(self.URL[:-3] + self.doEndpoint, 
+        res = requests.patch(self.IOURL[:-3] + self.doEndpoint, 
                              cookies = self.loginData.cookies, 
                              data = payload,
                              headers = h);
